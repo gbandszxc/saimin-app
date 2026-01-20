@@ -1,4 +1,4 @@
-# Saimin Hypnosis
+# 催眠 APP
 
 基于 Flutter 实现的催眠 APP，支持四种催眠图案展示，并提供四种配色组合。
 
