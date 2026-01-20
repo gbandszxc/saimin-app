@@ -10,7 +10,7 @@
 
 ![](docs/img/main_view.jpg)
 
-![](pic/control_panel-17689010551741.jpg)
+![](docs/img/control_panel.jpg)
 
 ## 技术栈
 
