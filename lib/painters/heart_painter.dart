@@ -4,15 +4,28 @@ import '../models/color_mode.dart';
 
 /// 爱心图案绘制器
 class HeartPainter extends CustomPainter {
-  final double animationValue;
+  final double animationValue; // 同心圆扩散速度
+  final double pulseSpeed; // 爱心膨胀循环速度（可与同心圆不同）
   final ColorMode colorMode;
 
-  HeartPainter({required this.animationValue, required this.colorMode});
+  HeartPainter({
+    required this.animationValue,
+    required this.pulseSpeed,
+    required this.colorMode,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final maxRadius = sqrt(size.width * size.width + size.height * size.height) / 2;
+
+    // 同心圆循环值（0→1）
+    final circleLoopValue = animationValue % 1.0;
+    // 爱心情环值（0→1，独立的速度控制）
+    final pulseLoopValue = pulseSpeed % 1.0;
+
+    // 固定膨胀系数：1.0 → 1.5倍
+    const pulseCoeff = 0.5;
 
     // 绘制背景
     canvas.drawRect(
@@ -25,7 +38,7 @@ class HeartPainter extends CustomPainter {
     const strokeWidth = 20.0;
 
     for (double i = 0; i < maxRadius * 1.5; i += circleSpacing) {
-      final radius = (i + animationValue * circleSpacing) % (maxRadius * 1.5);
+      final radius = (i + circleLoopValue * circleSpacing) % (maxRadius * 1.5);
       final opacity = 1.0 - (radius / (maxRadius * 1.5));
       if (opacity <= 0) continue;
 
@@ -39,13 +52,13 @@ class HeartPainter extends CustomPainter {
       );
     }
 
-    // 爱心跳动动画
-    final pulseScale = 1.0 + animationValue * 0.15;
+    // 爱心跳动动画（使用独立的爱心情环值和固定膨胀系数）
+    final heartPulse = 1.0 + pulseLoopValue * pulseCoeff;
 
     // 爱心大小 (80%)
     final aspectRatio = size.width / size.height;
     final baseSize = size.width * (aspectRatio > 1.5 ? 0.10 : 0.14);
-    final heartSize = baseSize * pulseScale;
+    final heartSize = baseSize * heartPulse;
 
     // 三层绘制（从外到内）
     // 1. 外描边：深粉色
@@ -134,6 +147,7 @@ class HeartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant HeartPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue ||
+        oldDelegate.pulseSpeed != pulseSpeed ||
         oldDelegate.colorMode != colorMode;
   }
 }

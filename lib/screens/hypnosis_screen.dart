@@ -33,7 +33,11 @@ class _HypnosisScreenState extends State<HypnosisScreen>
   bool _showControls = false;
   Timer? _hideTimer;
 
-  double get _rotationAngle => _controller.value * 2 * math.pi;
+  // 累加的总旋转角度，避免 value 重置导致的跳帧
+  double _totalRotation = 0;
+  double _lastValue = 0;
+
+  double get _rotationAngle => _totalRotation * 2 * math.pi * _speed;
 
   @override
   void initState() {
@@ -77,6 +81,16 @@ class _HypnosisScreenState extends State<HypnosisScreen>
       duration: const Duration(seconds: 1),
     )..addListener(() {
         if (_isPlaying) {
+          // 累加旋转角度，避免 value 重置导致的跳帧
+          final currentValue = _controller.value;
+          final delta = currentValue - _lastValue;
+          if (delta < 0) {
+            // 发生重置（从1回到0），补上差值
+            _totalRotation += (1 - _lastValue);
+          } else {
+            _totalRotation += delta;
+          }
+          _lastValue = currentValue;
           setState(() {});
         }
       })..repeat();
@@ -202,9 +216,11 @@ class _HypnosisScreenState extends State<HypnosisScreen>
       case PatternType.vortex:
         return VortexPainter(angle: _rotationAngle * _speed, colorMode: _colorMode);
       case PatternType.heart:
-        // 心形模式使用独立动画循环
+        // 同心圆扩散速度：_rotationAngle * _speed
+        // 爱心膨胀速度：是同心圆的0.8倍
         return HeartPainter(
           animationValue: _isPlaying ? _rotationAngle * _speed : 0,
+          pulseSpeed: _isPlaying ? _rotationAngle * _speed * 0.8 : 0,
           colorMode: _colorMode,
         );
     }
